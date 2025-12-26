@@ -9,6 +9,7 @@ interface TransactionDrawerProps {
     onConfirm: () => void;
     amount: number;
     title: string;
+    amountLabel?: string;
 }
 
 export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({
@@ -16,7 +17,8 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({
     onClose,
     onConfirm,
     amount,
-    title
+    title,
+    amountLabel = 'Amount'
 }) => {
     return (
         <Drawer isOpen={isOpen} onClose={onClose}>
@@ -50,7 +52,7 @@ export const TransactionDrawer: React.FC<TransactionDrawerProps> = ({
 
                     <div className="space-y-2">
                         <div className="flex justify-between items-center text-sm">
-                            <span className="text-slate-500">Amount</span>
+                            <span className="text-slate-500">{amountLabel}</span>
                             <span className="font-bold text-slate-800">${amount.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center text-sm">

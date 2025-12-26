@@ -176,9 +176,9 @@ function App() {
                         {/* Profile Pill Button */}
                         <button
                             onClick={() => setShowProfileModal(true)}
-                            className="flex items-center gap-2 bg-white hover:bg-slate-50 border-2 border-slate-200 rounded-full pl-1 pr-4 py-1 transition-all shadow-sm hover:shadow-md active:scale-95 group"
+                            className="flex items-center gap-2 bg-white hover:bg-slate-50 border-2 border-slate-200 rounded-full p-1 sm:pr-4 transition-all shadow-sm hover:shadow-md active:scale-95 group"
                         >
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-xs shadow-inner">
+                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-lg border border-slate-200">
                                 🦊
                             </div>
                             <div className="flex flex-col items-start hidden sm:flex">

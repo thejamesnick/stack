@@ -175,6 +175,7 @@ export const CreateStackModal: React.FC<CreateStackModalProps> = ({ onClose, onC
                     onConfirm={handleConfirmTransaction}
                     amount={totalProjected}
                     title={`Approve Stack: ${name}`}
+                    amountLabel="Spending Cap"
                 />
             </div>
         </div>
