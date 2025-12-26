@@ -9,13 +9,15 @@ interface HomeProps {
     activeStacks: SavingsStack[];
     onOpenCreate: () => void;
     onRequestBreak: (id: string) => void;
+    onStackClick: (stack: SavingsStack) => void;
 }
 
 export const Home: React.FC<HomeProps> = ({
     totalActiveSaved,
     activeStacks,
     onOpenCreate,
-    onRequestBreak
+    onRequestBreak,
+    onStackClick
 }) => {
     return (
         <>
@@ -45,7 +47,12 @@ export const Home: React.FC<HomeProps> = ({
                 {activeStacks.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {activeStacks.map(stack => (
-                            <StackCard key={stack.id} stack={stack} onBreak={onRequestBreak} />
+                            <StackCard
+                                key={stack.id}
+                                stack={stack}
+                                onBreak={onRequestBreak}
+                                onClick={() => onStackClick(stack)}
+                            />
                         ))}
                     </div>
                 ) : (

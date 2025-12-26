@@ -4,6 +4,7 @@ import { CreateStackModal } from './components/features/CreateStackModal';
 import { BreakStackModal } from './components/features/BreakStackModal';
 import { ProfileModal } from './components/features/ProfileModal';
 import { ShareSuccessModal } from './components/features/ShareSuccessModal';
+import { StackDetailsModal } from './components/features/StackDetailsModal';
 import { StackCard } from './components/features/StackCard';
 import { SavingsStack, StackStatus, UserWallet } from './types';
 import { Wallet, Coins, Settings, Bell, History as HistoryIcon, House, Plus } from 'lucide-react';
@@ -20,6 +21,7 @@ function App() {
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
     const [newlyCreatedStack, setNewlyCreatedStack] = useState<SavingsStack | null>(null);
+    const [selectedStack, setSelectedStack] = useState<SavingsStack | null>(null);
     const [breakingStackId, setBreakingStackId] = useState<string | null>(null);
     const [currentView, setCurrentView] = useState<'home' | 'history'>('home');
 
@@ -202,6 +204,7 @@ function App() {
                         activeStacks={activeStacks}
                         onOpenCreate={() => setShowCreateModal(true)}
                         onRequestBreak={handleRequestBreak}
+                        onStackClick={(stack) => setSelectedStack(stack)}
                     />
                 ) : (
                     <History
@@ -274,6 +277,17 @@ function App() {
                     }}
                     stack={newlyCreatedStack}
                     platform="farcaster"
+                />
+            )}
+
+            {selectedStack && (
+                <StackDetailsModal
+                    stack={selectedStack}
+                    onClose={() => setSelectedStack(null)}
+                    onBreak={() => {
+                        handleRequestBreak(selectedStack.id);
+                        setSelectedStack(null);
+                    }}
                 />
             )}
         </div>

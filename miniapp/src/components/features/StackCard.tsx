@@ -7,10 +7,34 @@ import { TrendingUp, Ban } from 'lucide-react';
 interface StackCardProps {
     stack: SavingsStack;
     onBreak: (id: string) => void;
+    onClick?: () => void;
 }
 
-export const StackCard: React.FC<StackCardProps> = ({ stack, onBreak }) => {
+export const StackCard: React.FC<StackCardProps> = ({ stack, onBreak, onClick }) => {
     const progress = Math.min((stack.currentAmount / stack.targetAmount) * 100, 100);
+
+    // Calculate time remaining
+    const calculateTimeRemaining = () => {
+        if (stack.status !== StackStatus.ACTIVE) return null;
+
+        const endDate = new Date(stack.endDate);
+        const now = new Date();
+        const daysLeft = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+        if (daysLeft < 0) return 'Overdue';
+        if (daysLeft === 0) return 'Today';
+        if (daysLeft === 1) return '1 day left';
+        if (daysLeft < 7) return `${daysLeft} days left`;
+
+        const weeksLeft = Math.ceil(daysLeft / 7);
+        if (weeksLeft === 1) return '1 week left';
+        if (weeksLeft < 4) return `${weeksLeft} weeks left`;
+
+        const monthsLeft = Math.ceil(daysLeft / 30);
+        return monthsLeft === 1 ? '1 month left' : `${monthsLeft} months left`;
+    };
+
+    const timeRemaining = calculateTimeRemaining();
 
     const handleBreakClick = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -18,7 +42,10 @@ export const StackCard: React.FC<StackCardProps> = ({ stack, onBreak }) => {
     };
 
     return (
-        <Card className="relative overflow-hidden group hover:border-brand-200 transition-colors p-5">
+        <Card
+            className="relative overflow-hidden group hover:border-brand-200 transition-colors p-5 cursor-pointer"
+            onClick={onClick}
+        >
             {/* Progress Bar */}
             <div className="absolute top-0 left-0 w-full h-2 bg-slate-100">
                 <div

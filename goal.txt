@@ -278,6 +278,19 @@ PHASE 4: FRONTEND COMPLETION
    [ ] Real-time updates via WebSocket or polling
 
 2. COMPLETE UI FLOWS
+   [✓] Stack Details Modal (COMPLETED!)
+       - Click on stack card to view details
+       - Shows progress, pulls completed, time remaining
+       - Displays yield earned
+       - Break stack option
+       - Compact design, no scrolling needed
+   
+   [✓] Share Stack Feature (COMPLETED!)
+       - Share modal after creating stack
+       - Pre-filled message for Farcaster
+       - "Share Your Goal" button
+       - Clean, minimal design
+   
    [ ] Create Stack flow
        - Wallet balance check
        - Token approval (if needed)
