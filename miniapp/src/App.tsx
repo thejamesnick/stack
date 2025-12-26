@@ -20,6 +20,8 @@ function App() {
     const [breakingStackId, setBreakingStackId] = useState<string | null>(null);
     const [currentView, setCurrentView] = useState<'home' | 'history'>('home');
 
+    const [splashVisible, setSplashVisible] = useState(true);
+
     const [hasOnboarded, setHasOnboarded] = useState(() => {
         if (typeof window !== 'undefined') {
             return localStorage.getItem('stack_has_onboarded') === 'true';
@@ -32,13 +34,25 @@ function App() {
         setStacks(MOCK_STACKS);
     }, []);
 
-    // Auto-connect if already onboarded
+    // Auto-connect flow for returning users
     useEffect(() => {
         if (hasOnboarded && !wallet) {
-            const timer = setTimeout(() => {
-                setWallet(MOCK_WALLET);
-            }, 2000);
-            return () => clearTimeout(timer);
+            // Show splash for 2.5s
+            const splashTimer = setTimeout(() => {
+                setSplashVisible(false);
+
+                // Then show skeleton/loading for a bit before "connecting"
+                const connectTimer = setTimeout(() => {
+                    setWallet(MOCK_WALLET);
+                }, 1000); // 1s of skeleton loading after splash
+
+                return () => clearTimeout(connectTimer);
+            }, 2500);
+
+            return () => clearTimeout(splashTimer);
+        } else if (!hasOnboarded) {
+            // If not onboarded, hide splash immediately to show onboarding
+            setSplashVisible(false);
         }
     }, [hasOnboarded, wallet]);
 
@@ -85,7 +99,28 @@ function App() {
 
     if (!wallet) {
         if (!hasOnboarded) {
+            // If they haven't onboarded, show onboarding (which handles its own flow)
+            // But we created a logic above where splashVisible starts true. 
+            // We should ensure onboarding users don't see brief splash or just show onboarding.
+            // My effect updates splashVisible to false immediately if !hasOnboarded.
+            // But react might render once with splashVisible=true.
+            // Let's rely on the effect.
+            // Ideally we Check if hasOnboarded is false, we want Onboarding immediately.
             return <Onboarding onComplete={handleOnboardingComplete} />;
+        }
+
+        if (splashVisible) {
+            return (
+                <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+                    <div className="w-24 h-24 bg-brand-500 rounded-[2rem] flex items-center justify-center mb-8 shadow-bubbly transform rotate-3">
+                        <Coins className="text-white w-12 h-12" />
+                    </div>
+                    <h1 className="font-display font-bold text-5xl text-slate-800 mb-4">Stack</h1>
+                    <p className="text-slate-500 text-lg max-w-md font-medium">
+                        The fun, automated way to save on Base.
+                    </p>
+                </div>
+            );
         }
 
         return <LoadingScreen />;
