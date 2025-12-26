@@ -46,7 +46,7 @@ export const BreakStackModal: React.FC<BreakStackModalProps> = ({ stack, onClose
                     <div className="h-px bg-slate-200 my-2"></div>
                     <div className="flex justify-between items-center">
                         <span className="font-display font-bold text-slate-700">You Receive</span>
-                        <span className="font-display font-semibold text-lg text-accent-green">${returnAmount.toFixed(2)}</span>
+                        <span className="font-display font-medium text-lg text-accent-green">${returnAmount.toFixed(2)}</span>
                     </div>
                 </div>
 
