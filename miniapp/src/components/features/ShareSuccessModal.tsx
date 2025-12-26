@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '../ui/Button';
-import { SavingsStack } from '../../types';
-import { generateStackShareMessage, shareToFarcaster, shareToBase } from '../../utils/share';
+import { SavingsStack, StackStatus } from '../../types';
+import { generateStackShareMessage, generateMilestoneShareMessage, shareToFarcaster, shareToBase } from '../../utils/share';
 import { X, Share2 } from 'lucide-react';
 
 interface ShareSuccessModalProps {
@@ -14,7 +14,16 @@ interface ShareSuccessModalProps {
 export function ShareSuccessModal({ isOpen, onClose, stack, platform = 'farcaster' }: ShareSuccessModalProps) {
     if (!isOpen) return null;
 
-    const shareMessage = generateStackShareMessage(stack);
+    const progress = (stack.currentAmount / stack.targetAmount) * 100;
+
+    let shareMessage = '';
+    if (stack.status === StackStatus.COMPLETED) {
+        shareMessage = generateMilestoneShareMessage(stack, 100);
+    } else if (progress >= 50) {
+        shareMessage = generateMilestoneShareMessage(stack, 50);
+    } else {
+        shareMessage = generateStackShareMessage(stack);
+    }
 
     const handleShare = async () => {
         if (platform === 'farcaster') {
@@ -38,10 +47,18 @@ export function ShareSuccessModal({ isOpen, onClose, stack, platform = 'farcaste
                 <div className="text-center mb-6">
                     <div className="text-6xl mb-3">{stack.emoji}</div>
                     <h2 className="font-display font-bold text-2xl text-slate-800 mb-2">
-                        {stack.name}
+                        {stack.status === StackStatus.COMPLETED
+                            ? 'Start Celebrating!'
+                            : progress >= 50
+                                ? 'Keep Going!'
+                                : stack.name}
                     </h2>
                     <p className="text-slate-500 font-medium">
-                        Stack created successfully!
+                        {stack.status === StackStatus.COMPLETED
+                            ? `You reached your goal for ${stack.name}`
+                            : progress >= 50
+                                ? `You're over halfway to your ${stack.name} goal`
+                                : 'Stack created successfully!'}
                     </p>
                 </div>
 

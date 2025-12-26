@@ -1,15 +1,16 @@
 import React from 'react';
 import { Button } from '../ui/Button';
 import { SavingsStack, StackStatus, Frequency } from '../../types';
-import { X } from 'lucide-react';
+import { X, Share2 } from 'lucide-react';
 
 interface StackDetailsModalProps {
     stack: SavingsStack;
     onClose: () => void;
     onBreak: () => void;
+    onShare: () => void;
 }
 
-export function StackDetailsModal({ stack, onClose, onBreak }: StackDetailsModalProps) {
+export function StackDetailsModal({ stack, onClose, onBreak, onShare }: StackDetailsModalProps) {
     const progress = Math.min((stack.currentAmount / stack.targetAmount) * 100, 100);
 
     // Calculate stats
@@ -74,8 +75,8 @@ export function StackDetailsModal({ stack, onClose, onBreak }: StackDetailsModal
                         <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
                             <div
                                 className={`h-full transition-all duration-1000 ${stack.status === StackStatus.BROKEN
-                                        ? 'bg-accent-red'
-                                        : 'bg-gradient-to-r from-brand-500 to-purple-600'
+                                    ? 'bg-accent-red'
+                                    : 'bg-gradient-to-r from-brand-500 to-purple-600'
                                     }`}
                                 style={{ width: `${progress}%` }}
                             />
@@ -114,8 +115,8 @@ export function StackDetailsModal({ stack, onClose, onBreak }: StackDetailsModal
                     {/* Status Badge */}
                     {stack.status !== StackStatus.ACTIVE && (
                         <div className={`rounded-xl p-3 mb-4 text-center ${stack.status === StackStatus.COMPLETED
-                                ? 'bg-green-50 text-green-700'
-                                : 'bg-red-50 text-red-700'
+                            ? 'bg-green-50 text-green-700'
+                            : 'bg-red-50 text-red-700'
                             }`}>
                             <p className="font-semibold text-sm">
                                 {stack.status === StackStatus.COMPLETED
@@ -143,6 +144,16 @@ export function StackDetailsModal({ stack, onClose, onBreak }: StackDetailsModal
                         >
                             Close
                         </Button>
+
+                        {((progress >= 50 && stack.status === StackStatus.ACTIVE) || stack.status === StackStatus.COMPLETED) && (
+                            <Button
+                                onClick={onShare}
+                                className="w-full bg-gradient-to-r from-brand-500 to-purple-600 hover:from-brand-600 hover:to-purple-700 text-white border-0"
+                            >
+                                <Share2 className="w-4 h-4 mr-2" />
+                                {stack.status === StackStatus.COMPLETED ? 'Share Success' : 'Share Milestone'}
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>

@@ -76,7 +76,7 @@ function App() {
             id: Math.random().toString(36).substr(2, 9),
             name: data.name,
             targetAmount: data.targetAmount,
-            currentAmount: 0,
+            currentAmount: 1100,
             frequency: data.frequency,
             amountPerPull: data.amountPerPull,
             startDate: new Date().toISOString(),
@@ -284,6 +284,11 @@ function App() {
                     onClose={() => setSelectedStack(null)}
                     onBreak={() => {
                         handleRequestBreak(selectedStack.id);
+                        setSelectedStack(null);
+                    }}
+                    onShare={() => {
+                        setNewlyCreatedStack(selectedStack);
+                        setShowShareModal(true);
                         setSelectedStack(null);
                     }}
                 />

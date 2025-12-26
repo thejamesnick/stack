@@ -23,13 +23,13 @@ export const MOCK_STACKS: SavingsStack[] = [
     {
         id: '2',
         name: 'New MacBook',
-        targetAmount: 2500,
-        currentAmount: 2500,
+        targetAmount: 2200,
+        currentAmount: 1100,
         frequency: Frequency.MONTHLY,
         amountPerPull: 500,
         startDate: '2023-02-01',
         endDate: '2023-07-01',
-        status: StackStatus.COMPLETED,
+        status: StackStatus.ACTIVE,
         asset: 'ETH',
         emoji: '💻'
     },
