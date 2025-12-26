@@ -9,8 +9,7 @@ import { Wallet, Coins, Settings, Bell, History as HistoryIcon, House, Plus } fr
 import { MOCK_WALLET, MOCK_STACKS } from './data/mock';
 import { Home } from './pages/Home';
 import { History } from './pages/History';
-
-
+import { Onboarding } from './components/features/Onboarding';
 
 function App() {
     const [wallet, setWallet] = useState<UserWallet | null>(null);
@@ -20,15 +19,35 @@ function App() {
     const [breakingStackId, setBreakingStackId] = useState<string | null>(null);
     const [currentView, setCurrentView] = useState<'home' | 'history'>('home');
 
+    const [hasOnboarded, setHasOnboarded] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('stack_has_onboarded') === 'true';
+        }
+        return false;
+    });
+
+    // Simulate loading stacks data separately from auth
     useEffect(() => {
-        // Simulate initial data load
-        setTimeout(() => {
-            setWallet(MOCK_WALLET);
-            setStacks(MOCK_STACKS);
-        }, 500);
+        setStacks(MOCK_STACKS);
     }, []);
 
+    // Auto-connect if already onboarded
+    useEffect(() => {
+        if (hasOnboarded && !wallet) {
+            const timer = setTimeout(() => {
+                setWallet(MOCK_WALLET);
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [hasOnboarded, wallet]);
+
     const handleConnectWallet = () => {
+        setWallet(MOCK_WALLET);
+    };
+
+    const handleOnboardingComplete = () => {
+        localStorage.setItem('stack_has_onboarded', 'true');
+        setHasOnboarded(true);
         setWallet(MOCK_WALLET);
     };
 
@@ -41,14 +60,14 @@ function App() {
             frequency: data.frequency,
             amountPerPull: data.amountPerPull,
             startDate: new Date().toISOString(),
-            endDate: new Date().toISOString(), // In reality calc based on duration
+            endDate: new Date().toISOString(),
             status: StackStatus.ACTIVE,
             asset: 'USDC',
             emoji: data.emoji
         };
         setStacks([newStack, ...stacks]);
         setShowCreateModal(false);
-        setCurrentView('home'); // Switch to home to see new stack
+        setCurrentView('home');
     };
 
     const handleRequestBreak = (id: string) => {
@@ -59,27 +78,24 @@ function App() {
         if (breakingStackId) {
             setStacks(stacks.map(s => s.id === breakingStackId ? { ...s, status: StackStatus.BROKEN } : s));
             setBreakingStackId(null);
-            setCurrentView('history'); // Switch to history so user sees where the broken stack went
+            setCurrentView('history');
         }
     };
 
     if (!wallet) {
+        if (!hasOnboarded) {
+            return <Onboarding onComplete={handleOnboardingComplete} />;
+        }
+
         return (
             <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
                 <div className="w-24 h-24 bg-brand-500 rounded-[2rem] flex items-center justify-center mb-8 shadow-bubbly transform rotate-3">
                     <Coins className="text-white w-12 h-12" />
                 </div>
                 <h1 className="font-display font-bold text-5xl text-slate-800 mb-4">Stack</h1>
-                <p className="text-slate-500 text-lg max-w-md mb-10 font-medium">
-                    The fun, automated way to build wealth on Base. Connect your wallet to start stacking today.
+                <p className="text-slate-500 text-lg max-w-md font-medium">
+                    The fun, automated way to save on Base.
                 </p>
-                <Button size="lg" onClick={handleConnectWallet}>
-                    Connect Wallet
-                </Button>
-                <div className="mt-12 flex gap-8 text-slate-400">
-                    <span className="flex items-center gap-2 font-bold uppercase text-xs tracking-wider"><Wallet className="w-4 h-4" /> Secure</span>
-                    <span className="flex items-center gap-2 font-bold uppercase text-xs tracking-wider"><Settings className="w-4 h-4" /> Automated</span>
-                </div>
             </div>
         );
     }

@@ -28,12 +28,6 @@ export const Home: React.FC<HomeProps> = ({
                             <h2 className="font-display font-bold text-4xl md:text-5xl">${totalActiveSaved.toLocaleString()}</h2>
                         </div>
 
-                        <div>
-                            <Button variant="secondary" onClick={onOpenCreate} className="border-none shadow-lg px-4 py-2 text-sm whitespace-nowrap">
-                                <Plus className="w-4 h-4 mr-2" />
-                                New Stack
-                            </Button>
-                        </div>
                     </div>
                     {/* Decorative Circles */}
                     <div className="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
