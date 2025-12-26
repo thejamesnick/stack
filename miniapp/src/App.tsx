@@ -243,7 +243,6 @@ function App() {
                 <CreateStackModal
                     onClose={() => setShowCreateModal(false)}
                     onCreate={handleCreateStack}
-                    userBalance={wallet.balance}
                 />
             )}
 

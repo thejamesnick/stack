@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import { Frequency } from '../../types';
 import { Button } from '../ui/Button';
 import { X } from 'lucide-react';
+import { TransactionDrawer } from './TransactionDrawer';
 
 interface CreateStackModalProps {
     onClose: () => void;
     onCreate: (data: any) => void;
-    userBalance: number;
 }
 
-export const CreateStackModal: React.FC<CreateStackModalProps> = ({ onClose, onCreate, userBalance }) => {
+export const CreateStackModal: React.FC<CreateStackModalProps> = ({ onClose, onCreate }) => {
     const [step, setStep] = useState(1);
+    const [showApproval, setShowApproval] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
+
     const [name, setName] = useState('');
     const [amount, setAmount] = useState<string>('10');
     const [frequency, setFrequency] = useState<Frequency>(Frequency.WEEKLY);
@@ -19,7 +22,19 @@ export const CreateStackModal: React.FC<CreateStackModalProps> = ({ onClose, onC
 
     const totalProjected = (Number(amount) || 0) * duration;
 
-    const handleSubmit = () => {
+    const handleStartClick = () => {
+        // Step 1: Trigger "Wallet" drawer
+        setShowApproval(true);
+    };
+
+    const handleConfirmTransaction = async () => {
+        // Step 2: User confirmed in "Wallet"
+        setShowApproval(false);
+        setIsCreating(true);
+
+        // Step 3: Simulate blockchain delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
         onCreate({
             name,
             amountPerPull: Number(amount) || 0,
@@ -115,9 +130,6 @@ export const CreateStackModal: React.FC<CreateStackModalProps> = ({ onClose, onC
                                     min={1}
                                 />
                             </div>
-                            <p className="text-right text-xs font-bold text-slate-400 mt-2">
-                                Wallet Balance: ${userBalance.toLocaleString()}
-                            </p>
                         </div>
 
                         <div>
@@ -150,12 +162,20 @@ export const CreateStackModal: React.FC<CreateStackModalProps> = ({ onClose, onC
 
                         <div className="flex gap-2 mt-6">
                             <Button variant="secondary" onClick={() => setStep(1)}>Back</Button>
-                            <Button className="flex-1" onClick={handleSubmit}>
-                                Start Stack
+                            <Button className="flex-1" onClick={handleStartClick}>
+                                {isCreating ? 'Creating...' : 'Start Stack'}
                             </Button>
                         </div>
                     </div>
                 )}
+                {/* Transaction Drawer (Mock Wallet) */}
+                <TransactionDrawer
+                    isOpen={showApproval}
+                    onClose={() => setShowApproval(false)}
+                    onConfirm={handleConfirmTransaction}
+                    amount={totalProjected}
+                    title={`Approve Stack: ${name}`}
+                />
             </div>
         </div>
     );
