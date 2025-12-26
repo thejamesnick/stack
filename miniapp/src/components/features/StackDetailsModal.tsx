@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '../ui/Button';
 import { SavingsStack, StackStatus, Frequency } from '../../types';
-import { X, TrendingUp } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface StackDetailsModalProps {
     stack: SavingsStack;
@@ -14,7 +14,6 @@ export function StackDetailsModal({ stack, onClose, onBreak }: StackDetailsModal
 
     // Calculate stats
     const totalPulls = Math.floor(stack.currentAmount / stack.amountPerPull);
-    const estimatedYield = stack.currentAmount * 0.024; // 2.4% APY mock
 
     // Calculate CORRECT pulls remaining
     const remainingAmount = stack.targetAmount - stack.currentAmount;
@@ -86,8 +85,8 @@ export function StackDetailsModal({ stack, onClose, onBreak }: StackDetailsModal
                         </p>
                     </div>
 
-                    {/* Compact Stats */}
-                    <div className="grid grid-cols-3 gap-3 mb-4">
+                    {/* Compact Stats - 2 columns (removed yield) */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
                         <div className="bg-slate-50 rounded-xl p-3 text-center">
                             <p className="text-slate-500 text-xs font-semibold mb-1">Pulls</p>
                             <p className="font-bold text-slate-800 text-lg">{totalPulls}</p>
@@ -109,11 +108,6 @@ export function StackDetailsModal({ stack, onClose, onBreak }: StackDetailsModal
                                     : stack.status === StackStatus.COMPLETED ? '✓' : '✗'
                                 }
                             </p>
-                        </div>
-
-                        <div className="bg-green-50 rounded-xl p-3 text-center">
-                            <p className="text-green-600 text-xs font-semibold mb-1">Yield</p>
-                            <p className="font-bold text-green-600 text-lg">+${estimatedYield.toFixed(2)}</p>
                         </div>
                     </div>
 

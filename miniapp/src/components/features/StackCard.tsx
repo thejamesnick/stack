@@ -102,8 +102,8 @@ export const StackCard: React.FC<StackCardProps> = ({ stack, onBreak, onClick })
                     </div>
                 </div>
 
-                {/* Mock Yield Visual */}
-                {stack.status === StackStatus.ACTIVE && (
+                {/* Yield feature - Coming soon! */}
+                {/* {stack.status === StackStatus.ACTIVE && (
                     <div className="bg-brand-50 rounded-xl p-2.5 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <TrendingUp className="w-4 h-4 text-brand-500" />
@@ -111,7 +111,7 @@ export const StackCard: React.FC<StackCardProps> = ({ stack, onBreak, onClick })
                         </div>
                         <span className="text-brand-600 text-xs font-bold">+2.4% APY</span>
                     </div>
-                )}
+                )} */}
             </div>
         </Card>
     );
