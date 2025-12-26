@@ -1,0 +1,198 @@
+STACK - SIMPLIFIED AUTHENTICATION FLOW
+=======================================
+
+YES! You're absolutely right! 🎯
+
+================================================================================
+AUTO-FID DETECTION (The Smart Way)
+================================================================================
+
+When user opens Stack app:
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1. CHECK CONTEXT                                                        │
+│    - Is user in Farcaster app? (Warpcast)                              │
+│    - Is user in Base app?                                               │
+│    - Is user on web?                                                    │
+└─────────────────────────────────────────────────────────────────────────┘
+
+IF IN FARCASTER APP (Warpcast):
+================================
+✨ AUTOMATIC - NO LOGIN NEEDED!
+
+1. Detect Farcaster context (using Farcaster SDK)
+2. Get FID automatically from the app
+3. Fetch user profile (username, pfp, bio)
+4. Check database:
+   - User exists? → Load their data
+   - New user? → Create user record with FID
+5. Store FID in session
+6. Show onboarding (if first time)
+7. Ask to connect wallet → Start saving!
+
+BENEFITS:
+✅ Zero-click authentication
+✅ User already identified by FID
+✅ Seamless experience
+✅ All social features enabled
+
+
+IF IN BASE APP:
+===============
+Similar auto-detection:
+
+1. Detect Base app context (using Coinbase SDK)
+2. Get connected wallet automatically
+3. Check if wallet is linked to a FID:
+   - Has FID? → Load user data
+   - No FID? → Prompt to link Farcaster (optional)
+4. Store wallet in session
+5. Show onboarding (if first time)
+6. Start saving!
+
+BENEFITS:
+✅ Automatic wallet connection
+✅ Seamless in Coinbase ecosystem
+✅ Can optionally link Farcaster for social features
+
+
+================================================================================
+UPDATED FLOW
+================================================================================
+
+FIRST-TIME USER IN FARCASTER:
+──────────────────────────────
+
+1. User opens Stack in Warpcast
+   ↓
+2. Splash screen (2.5s)
+   ↓
+3. ✨ AUTO-DETECT FID (background, instant)
+   - Get FID from Farcaster SDK
+   - Create user in database
+   ↓
+4. Onboarding (3 screens)
+   - "Automate Your Savings"
+   - "Reach Your Goals"  
+   - "Earn While You Save"
+   ↓
+5. "Connect Your Wallet"
+   - Link wallet to FID
+   - Verify on Base network
+   ↓
+6. Dashboard (Empty State)
+   - "Create Your First Stack"
+   ↓
+7. Create Stack → Done!
+
+
+RETURNING USER IN FARCASTER:
+─────────────────────────────
+
+1. User opens Stack in Warpcast
+   ↓
+2. Splash screen (2.5s)
+   ↓
+3. ✨ AUTO-DETECT FID (background)
+   - Get FID
+   - Fetch user data from database
+   - Load stacks, balance, etc.
+   ↓
+4. Loading skeleton (1s)
+   ↓
+5. Dashboard (with stacks)
+   - Ready to use!
+
+
+================================================================================
+TECHNICAL IMPLEMENTATION
+================================================================================
+
+FARCASTER SDK DETECTION:
+```typescript
+// Check if running in Farcaster context
+const isFarcaster = typeof window !== 'undefined' && 
+                    window.parent !== window;
+
+if (isFarcaster) {
+  // Get FID from Farcaster SDK
+  const sdk = new FrameSDK();
+  const context = await sdk.context;
+  const fid = context.user.fid;
+  const username = context.user.username;
+  const pfpUrl = context.user.pfpUrl;
+  
+  // Save to database
+  await createOrUpdateUser({
+    fid,
+    username,
+    pfp_url: pfpUrl,
+    // ... other profile data
+  });
+  
+  // Store in session
+  setSession({ fid, username });
+}
+```
+
+DATABASE FLOW:
+```sql
+-- Check if user exists
+SELECT * FROM users WHERE fid = $1;
+
+-- If not exists, create
+INSERT INTO users (fid, username, pfp_url, created_at)
+VALUES ($1, $2, $3, NOW());
+
+-- If exists, update profile
+UPDATE users 
+SET username = $2, pfp_url = $3, updated_at = NOW()
+WHERE fid = $1;
+```
+
+================================================================================
+WHY THIS IS BETTER
+================================================================================
+
+OLD WAY (Manual Login):
+❌ User has to click "Sign in with Farcaster"
+❌ Extra step, friction
+❌ Redirect flow
+❌ User might skip
+
+NEW WAY (Auto-detect):
+✅ Instant authentication
+✅ Zero clicks needed
+✅ Seamless experience
+✅ User doesn't even notice
+✅ FID already in database when they hit "Get Started"
+
+================================================================================
+WHAT WE NEED
+================================================================================
+
+STEP 1: Detect Context
+- Check if in Farcaster app
+- Check if in Base app
+- Fallback to web
+
+STEP 2: Get FID (if Farcaster)
+- Use Farcaster SDK
+- Extract FID from context
+- Get profile data
+
+STEP 3: Database
+- Create/update user with FID
+- Store session
+
+STEP 4: Wallet Linking
+- Only step user sees
+- "Connect wallet to start saving"
+- Link wallet to existing FID
+
+STEP 5: Done!
+- User is fully authenticated
+- FID + Wallet linked
+- Ready to create stacks
+
+================================================================================

@@ -1,0 +1,303 @@
+STACK - WALLET & APPROVAL ARCHITECTURE
+=======================================
+
+IMPORTANT CLARIFICATION!
+========================
+
+FID vs WALLET ADDRESS:
+----------------------
+
+FID (Farcaster ID):
+- Your IDENTITY across all platforms
+- Stays the same everywhere
+- Links to your profile, stats, achievements
+- Stored in database as primary key
+
+WALLET ADDRESS:
+- Where your MONEY lives
+- Can be DIFFERENT depending on platform:
+  * Farcaster app → Farcaster wallet address
+  * Base app → Coinbase Wallet address
+  * Web → MetaMask/WalletConnect address
+- You can have MULTIPLE wallets linked to ONE FID
+- Each wallet can fund different stacks
+
+
+================================================================================
+HOW IT WORKS
+================================================================================
+
+SCENARIO 1: User in Farcaster App
+──────────────────────────────────
+1. Auto-get FID (e.g., FID: 12345)
+2. User connects Farcaster wallet (0xABC...123)
+3. Create stack "Summer Trip"
+4. User approves USDC spending from 0xABC...123
+5. Stack contract can now pull from 0xABC...123
+
+Database:
+- FID: 12345
+- Wallet: 0xABC...123 (linked to FID 12345)
+- Stack: "Summer Trip" (funded by 0xABC...123)
+
+
+SCENARIO 2: Same User in Base App
+──────────────────────────────────
+1. Auto-get FID (same FID: 12345)
+2. User connects Coinbase Wallet (0xDEF...456) - DIFFERENT wallet!
+3. Create stack "Emergency Fund"
+4. User approves USDC spending from 0xDEF...456
+5. Stack contract can now pull from 0xDEF...456
+
+Database:
+- FID: 12345 (same user!)
+- Wallet 1: 0xABC...123 (Farcaster)
+- Wallet 2: 0xDEF...456 (Base app) ← NEW
+- Stack 1: "Summer Trip" (funded by 0xABC...123)
+- Stack 2: "Emergency Fund" (funded by 0xDEF...456)
+
+
+RESULT:
+-------
+✅ Same FID (identity)
+✅ Multiple wallets
+✅ Each stack knows which wallet funds it
+✅ User sees ALL stacks in both apps (same FID)
+✅ But money comes from different wallets
+
+
+================================================================================
+SMART CONTRACT APPROVAL FLOW
+================================================================================
+
+FOR EACH STACK CREATED:
+-----------------------
+
+Step 1: User Creates Stack
+- Choose name, amount, frequency
+- Click "Create Stack"
+
+Step 2: USDC Approval (if first time from this wallet)
+┌──────────────────────────────────────────┐
+│ "Approve USDC Spending"                  │
+│                                          │
+│ Stack needs permission to automatically  │
+│ pull $10/week from:                      │
+│ 0xABC...123                              │
+│                                          │
+│ [Approve in Wallet]                      │
+└──────────────────────────────────────────┘
+
+Transaction:
+- Contract: USDC Token Contract
+- Function: approve(stackContract, amount)
+- Spender: Stack Contract Address
+- Amount: Unlimited (or specific amount)
+
+Step 3: Create Stack Transaction
+┌──────────────────────────────────────────┐
+│ "Creating Stack"                         │
+│                                          │
+│ 🏖️ Summer Trip                           │
+│ $10/week from 0xABC...123                │
+│                                          │
+│ [Confirm in Wallet]                      │
+└──────────────────────────────────────────┘
+
+Transaction:
+- Contract: Stack Contract
+- Function: createStack(params)
+- Params:
+  * name: "Summer Trip"
+  * amount: 10 USDC
+  * frequency: weekly
+  * wallet: 0xABC...123 ← Important!
+  * fid: 12345
+
+
+================================================================================
+DATABASE SCHEMA (UPDATED)
+================================================================================
+
+Users Table:
+- fid (PRIMARY KEY) - 12345
+- username - "based_saver"
+- pfp_url - "https://..."
+- created_at
+
+Wallets Table:
+- id (PRIMARY KEY) - 1
+- fid (FOREIGN KEY) - 12345
+- address - "0xABC...123"
+- chain_id - 8453 (Base)
+- platform - "farcaster" | "base" | "web"
+- is_primary - true
+- created_at
+
+- id (PRIMARY KEY) - 2
+- fid (FOREIGN KEY) - 12345
+- address - "0xDEF...456"
+- chain_id - 8453 (Base)
+- platform - "base"
+- is_primary - false
+- created_at
+
+Stacks Table:
+- id (PRIMARY KEY) - 1
+- fid (FOREIGN KEY) - 12345
+- wallet_address - "0xABC...123" ← Which wallet funds this
+- name - "Summer Trip"
+- amount_per_pull - 10
+- frequency - "weekly"
+- contract_address - "0xSTACK...001" ← On-chain stack contract
+- status - "active"
+- created_at
+
+- id (PRIMARY KEY) - 2
+- fid (FOREIGN KEY) - 12345
+- wallet_address - "0xDEF...456" ← Different wallet!
+- name - "Emergency Fund"
+- amount_per_pull - 20
+- frequency - "weekly"
+- contract_address - "0xSTACK...002" ← Different stack contract
+- status - "active"
+- created_at
+
+
+================================================================================
+SMART CONTRACT ARCHITECTURE
+================================================================================
+
+OPTION 1: One Stack Contract Per User Stack
+────────────────────────────────────────────
+Each time user creates a stack, deploy a new contract:
+
+Contract: StackVault_001
+- Owner: 0xABC...123
+- Token: USDC
+- Amount: 10 USDC
+- Frequency: 7 days
+- Automation: Chainlink Keeper pulls every 7 days
+
+Pros:
+✅ Isolated funds per stack
+✅ Easy to break individual stacks
+✅ Clear ownership
+
+Cons:
+❌ Gas cost to deploy each time
+❌ More contracts to manage
+
+
+OPTION 2: One Master Contract, Multiple Vaults
+───────────────────────────────────────────────
+One contract manages all stacks:
+
+Contract: StackMaster
+- Function: createVault(owner, amount, frequency)
+- Vaults:
+  * Vault 1: Owner 0xABC...123, $10/week
+  * Vault 2: Owner 0xDEF...456, $20/week
+
+Pros:
+✅ Lower gas (no deployment)
+✅ Centralized management
+✅ Easier upgrades
+
+Cons:
+❌ More complex contract
+❌ Single point of failure
+
+
+RECOMMENDED: Option 2 (Master Contract)
+────────────────────────────────────────
+
+
+================================================================================
+APPROVAL REQUIREMENTS
+================================================================================
+
+WHEN USER CREATES FIRST STACK FROM A WALLET:
+─────────────────────────────────────────────
+1. Approve USDC spending (one-time per wallet)
+2. Create stack transaction
+
+WHEN USER CREATES SECOND STACK FROM SAME WALLET:
+─────────────────────────────────────────────────
+1. Skip approval (already approved)
+2. Just create stack transaction
+
+WHEN USER CREATES STACK FROM DIFFERENT WALLET:
+───────────────────────────────────────────────
+1. Approve USDC spending (first time for this wallet)
+2. Create stack transaction
+
+
+================================================================================
+USER EXPERIENCE
+================================================================================
+
+CREATING STACK:
+───────────────
+
+UI Shows:
+┌─────────────────────────────────────────┐
+│ Create Stack                            │
+│                                         │
+│ Name: Summer Trip                       │
+│ Amount: $10/week                        │
+│                                         │
+│ Fund from:                              │
+│ (•) 0xABC...123 (Farcaster) ⭐          │
+│     Balance: $500 USDC                  │
+│                                         │
+│ ( ) 0xDEF...456 (Base)                  │
+│     Balance: $1,200 USDC                │
+│                                         │
+│ [+ Add Another Wallet]                  │
+│                                         │
+│ [Create Stack]                          │
+└─────────────────────────────────────────┘
+
+User can:
+- Choose which wallet to fund from
+- See balance in each wallet
+- Add more wallets
+- Create stack
+
+
+VIEWING ALL STACKS:
+───────────────────
+
+Dashboard shows ALL stacks across ALL wallets:
+
+┌─────────────────────────────────────────┐
+│ Your Stacks                   2 Active  │
+│                                         │
+│ 🏖️ Summer Trip                          │
+│    $30/$120 • From 0xABC...123          │
+│                                         │
+│ 🚨 Emergency Fund                       │
+│    $60/$500 • From 0xDEF...456          │
+│                                         │
+└─────────────────────────────────────────┘
+
+User sees:
+✅ All stacks (same FID)
+✅ Which wallet funds each
+✅ Unified view across platforms
+
+
+================================================================================
+KEY TAKEAWAYS
+================================================================================
+
+1. FID = Identity (one per user)
+2. Wallet = Money source (multiple per user)
+3. Each stack is funded by ONE specific wallet
+4. Each wallet needs USDC approval (one-time)
+5. User can have stacks from different wallets
+6. All stacks visible in both Farcaster and Base apps (same FID)
+7. Smart contract pulls from the specific wallet that funds each stack
+
+================================================================================

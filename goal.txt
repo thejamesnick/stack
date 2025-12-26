@@ -1,0 +1,570 @@
+STACK - AUTOMATED SAVINGS MINI APP
+====================================
+Goal: Build a fully functional automated savings app on Base blockchain
+Platforms: Base Mini App, Farcaster Frame, Standalone Web App
+
+================================================================================
+PHASE 1: SMART CONTRACT DEVELOPMENT (Base Blockchain)
+================================================================================
+
+1. CORE SMART CONTRACT
+   [ ] Design Stack contract architecture
+       - User vault management
+       - Automated pull scheduling (daily/weekly/monthly)
+       - ERC-20 token support (USDC primary)
+       - Emergency withdrawal with fee mechanism
+       - Yield integration hooks
+   
+   [ ] Implement security features
+       - Reentrancy guards
+       - Access control
+       - Pausable functionality
+       - Upgrade mechanism (proxy pattern)
+   
+   [ ] Write comprehensive tests
+       - Unit tests for all functions
+       - Integration tests
+       - Gas optimization tests
+       - Security audit preparation
+
+2. YIELD INTEGRATION
+   [ ] Research Base DeFi protocols
+       - Aave on Base
+       - Compound
+       - Morpho
+       - Other yield sources
+   
+   [ ] Implement yield strategy contracts
+       - Auto-compound logic
+       - Multi-protocol support
+       - Risk management
+       - APY calculation
+
+3. AUTOMATION INFRASTRUCTURE
+   [ ] Implement Chainlink Automation (or similar)
+       - Scheduled pull triggers
+       - Upkeep registration
+       - Gas management
+   
+   [ ] Fallback mechanisms
+       - Manual trigger option
+       - Keeper network backup
+
+4. DEPLOYMENT
+   [ ] Deploy to Base Sepolia (testnet)
+   [ ] Comprehensive testing on testnet
+   [ ] Security audit
+   [ ] Deploy to Base Mainnet
+   [ ] Verify contracts on Basescan
+
+================================================================================
+PHASE 2: BACKEND & API DEVELOPMENT
+================================================================================
+
+IDENTITY ARCHITECTURE:
+- PRIMARY: Farcaster FID (Farcaster ID)
+- SECONDARY: Wallet Address
+- Users can link multiple wallets to one FID
+- FID provides social identity, wallet provides transaction capability
+
+1. DATABASE SETUP
+   [ ] Choose database (PostgreSQL/Supabase recommended)
+   [ ] Design schema
+       - Users table
+           * fid (PRIMARY KEY) - Farcaster ID
+           * username - Farcaster username
+           * display_name - Farcaster display name
+           * pfp_url - Profile picture
+           * bio - User bio from Farcaster
+           * primary_wallet - Main wallet address
+           * created_at, updated_at
+       
+       - Wallets table (many-to-one with Users)
+           * id (PRIMARY KEY)
+           * fid (FOREIGN KEY) - Links to Users
+           * address - Wallet address
+           * chain_id - Network (Base = 8453)
+           * is_primary - Boolean
+           * verified_at - Timestamp
+           * created_at
+       
+       - Stacks table
+           * id (PRIMARY KEY)
+           * fid (FOREIGN KEY) - Owner's Farcaster ID
+           * wallet_address - Wallet funding this stack
+           * name - Stack name
+           * emoji - Stack emoji
+           * target_amount - Goal amount
+           * current_amount - Current saved
+           * frequency - daily/weekly/monthly
+           * amount_per_pull - Amount per interval
+           * start_date, end_date
+           * status - active/completed/broken
+           * contract_address - On-chain stack contract
+           * created_at, updated_at
+       
+       - Transactions table
+           * id (PRIMARY KEY)
+           * stack_id (FOREIGN KEY)
+           * fid (FOREIGN KEY) - For quick user lookups
+           * tx_hash - Blockchain transaction hash
+           * type - deposit/withdrawal/yield/break
+           * amount
+           * timestamp
+           * status - pending/confirmed/failed
+       
+       - Notifications table
+           * id (PRIMARY KEY)
+           * fid (FOREIGN KEY)
+           * type - milestone/reminder/social/system
+           * message
+           * read_status
+           * created_at
+       
+       - Social table (Farcaster social graph)
+           * fid (FOREIGN KEY)
+           * follower_fid
+           * following_fid
+           * synced_at
+       
+       - Leaderboards table (aggregated stats for rankings)
+           * id (PRIMARY KEY)
+           * fid (FOREIGN KEY) - User's Farcaster ID
+           * username - Cached Farcaster username
+           * pfp_url - Cached profile picture
+           * total_saved - Total amount saved across all stacks
+           * total_stacks_created - Number of stacks created
+           * total_stacks_completed - Number of stacks completed
+           * current_streak_days - Current daily saving streak
+           * longest_streak_days - Longest saving streak ever
+           * total_yield_earned - Total yield/interest earned
+           * rank_global - Global rank by total saved
+           * rank_monthly - Monthly rank
+           * rank_weekly - Weekly rank
+           * last_updated - Timestamp of last calculation
+           * created_at
+       
+       - Achievements table (gamification)
+           * id (PRIMARY KEY)
+           * achievement_type - first_stack/streak_7/streak_30/saver_100/etc
+           * name - Achievement name
+           * description - Achievement description
+           * icon - Icon/badge identifier
+           * points - Points awarded
+           * created_at
+       
+       - User_Achievements table (many-to-many)
+           * id (PRIMARY KEY)
+           * fid (FOREIGN KEY)
+           * achievement_id (FOREIGN KEY)
+           * earned_at - When user earned it
+           * is_displayed - Show on profile
+       
+       - Leaderboard_History table (for time-based rankings)
+           * id (PRIMARY KEY)
+           * fid (FOREIGN KEY)
+           * period - daily/weekly/monthly/all_time
+           * period_start - Start of period
+           * period_end - End of period
+           * amount_saved - Amount saved in this period
+           * rank - Rank in this period
+           * created_at
+   
+   [ ] Set up migrations
+   [ ] Implement backup strategy
+   [ ] Index optimization (FID-based queries)
+   [ ] Set up automated leaderboard calculation job (runs daily/hourly)
+
+2. API DEVELOPMENT
+   [ ] Set up backend framework (Next.js API routes or Express)
+   [ ] Implement dual authentication
+       - PRIMARY: Farcaster FID verification
+           * Verify Farcaster signature
+           * Fetch user data from Farcaster Hub
+           * Create/update user profile
+       
+       - SECONDARY: Wallet signature verification
+           * Sign-in with Ethereum (SIWE)
+           * Link wallet to existing FID
+           * Verify wallet ownership
+       
+       - Session management
+           * JWT tokens with FID as subject
+           * Include linked wallets in token
+           * Refresh token strategy
+   
+   [ ] Core API endpoints (FID-based)
+       - POST /api/auth/farcaster - Authenticate with FID
+       - POST /api/auth/wallet - Link wallet to FID
+       - GET /api/user/:fid - Get user profile
+       - GET /api/stacks/:fid - Get user's stacks
+       - POST /api/stack/create - Create new stack (requires FID + wallet)
+       - POST /api/stack/break - Break stack early
+       - GET /api/transactions/:fid - Get user's transaction history
+       - GET /api/stats/:fid - Get user statistics
+       - GET /api/social/:fid/followers - Get Farcaster followers
+       - GET /api/leaderboard - Global savings leaderboard
+   
+   [ ] Farcaster Hub integration
+       - Connect to Farcaster Hub (Neynar API recommended)
+       - Fetch user profiles
+       - Sync social graph
+       - Post casts (for notifications/sharing)
+   
+   [ ] Blockchain integration
+       - Web3 provider setup (Alchemy/Infura)
+       - Contract interaction layer
+       - Event listening and indexing
+       - Transaction status tracking
+       - Multi-wallet support per FID
+
+3. INDEXING & CACHING
+   [ ] Set up event indexer
+       - Listen to contract events
+       - Update database in real-time
+       - Handle reorgs
+   
+   [ ] Implement caching layer (Redis)
+       - Cache user data
+       - Cache APY rates
+       - Cache transaction history
+
+4. NOTIFICATIONS
+   [ ] Email notifications (optional)
+   [ ] Push notifications (web push)
+   [ ] Farcaster notifications integration
+
+================================================================================
+PHASE 3: WALLET INTEGRATION & WEB3 CONNECTIVITY
+================================================================================
+
+1. WALLET CONNECTION
+   [ ] Implement wallet connectors
+       - Coinbase Wallet (primary for Base)
+       - MetaMask
+       - WalletConnect
+       - Rainbow Wallet
+   
+   [ ] Smart Wallet support
+       - Coinbase Smart Wallet
+       - Account abstraction integration
+
+2. TRANSACTION MANAGEMENT
+   [ ] Implement transaction flow
+       - Gas estimation
+       - Transaction signing
+       - Status tracking
+       - Error handling
+   
+   [ ] User experience
+       - Loading states
+       - Success/error messages
+       - Transaction receipts
+       - Retry mechanisms
+
+3. NETWORK MANAGEMENT
+   [ ] Auto-switch to Base network
+   [ ] Handle network errors
+   [ ] Testnet/Mainnet toggle (dev mode)
+
+================================================================================
+PHASE 4: FRONTEND COMPLETION
+================================================================================
+
+1. REPLACE MOCK DATA
+   [ ] Remove all MOCK_WALLET and MOCK_STACKS
+   [ ] Implement real wallet connection
+   [ ] Fetch real data from API/blockchain
+   [ ] Real-time updates via WebSocket or polling
+
+2. COMPLETE UI FLOWS
+   [ ] Create Stack flow
+       - Wallet balance check
+       - Token approval (if needed)
+       - Contract interaction
+       - Success confirmation
+   
+   [ ] Break Stack flow
+       - Fee calculation display
+       - Confirmation modal
+       - Contract interaction
+       - Receipt display
+   
+   [ ] Profile/Settings
+       - Notification preferences
+       - Display settings
+       - Connected wallet info
+       - Disconnect option
+
+3. TRANSACTION HISTORY
+   [ ] Implement real transaction list
+   [ ] Filter and search
+   [ ] Export functionality
+   [ ] Transaction details modal
+
+4. ANALYTICS & STATS
+   [ ] Total saved over time chart
+   [ ] Yield earned visualization
+   [ ] Savings rate tracking
+   [ ] Goal progress indicators
+
+5. ERROR HANDLING
+   [ ] Network errors
+   [ ] Transaction failures
+   [ ] Insufficient balance
+   [ ] Contract errors
+   [ ] User-friendly error messages
+
+================================================================================
+PHASE 5: FARCASTER INTEGRATION
+================================================================================
+
+1. FARCASTER FRAME
+   [ ] Research Farcaster Frames v2 spec
+   [ ] Design frame flow
+       - Initial frame (app preview)
+       - Create stack frame
+       - View stacks frame
+       - Transaction frames
+   
+   [ ] Implement frame endpoints
+       - Frame metadata
+       - Button actions
+       - Transaction signing
+   
+   [ ] Test in Warpcast
+
+2. FARCASTER MINI APP
+   [ ] Integrate Farcaster SDK
+   [ ] Implement Farcaster auth (auto-detect FID)
+   [ ] User profile integration
+   
+   [ ] Social Sharing Features (CRITICAL FOR GROWTH!)
+       - Share stack creation immediately after creating
+       - Pre-filled cast with stack details
+       - Interactive Frame in cast
+       - Frame shows stack progress
+       - "Start Your Own Stack" button in Frame
+       - Viral loop: Friends see → Click → Create their own
+       - Share milestones (50%, 100% complete)
+       - Share achievements
+   
+   [ ] Leaderboards
+       - Global rankings
+       - Friend rankings
+       - Weekly/Monthly competitions
+   
+   [ ] Social proof
+       - Show friend activity
+       - "3 of your friends are stacking"
+       - Trending stacks
+
+3. NOTIFICATIONS
+   [ ] Farcaster direct casts for important events
+   [ ] Milestone celebrations
+   [ ] Reminder notifications
+
+================================================================================
+PHASE 6: BASE MINI APP INTEGRATION
+================================================================================
+
+1. COINBASE WALLET SDK
+   [ ] Integrate Coinbase Wallet SDK
+   [ ] Implement in-app browser detection
+   [ ] Optimize for mobile experience
+
+2. BASE ECOSYSTEM INTEGRATION
+   [ ] Register on Base app directory
+   [ ] Implement Base branding guidelines
+   [ ] Deep linking support
+   [ ] Share functionality
+
+3. ONRAMP INTEGRATION
+   [ ] Coinbase Pay integration
+   [ ] Direct USDC purchase flow
+   [ ] Seamless funding experience
+
+================================================================================
+PHASE 7: TESTING & QA
+================================================================================
+
+1. UNIT TESTS
+   [ ] Frontend component tests
+   [ ] API endpoint tests
+   [ ] Smart contract tests
+   [ ] Utility function tests
+
+2. INTEGRATION TESTS
+   [ ] End-to-end user flows
+   [ ] Wallet connection flows
+   [ ] Transaction flows
+   [ ] Cross-platform testing
+
+3. SECURITY TESTING
+   [ ] Smart contract audit
+   [ ] Penetration testing
+   [ ] Wallet security review
+   [ ] API security audit
+
+4. PERFORMANCE TESTING
+   [ ] Load testing
+   [ ] Gas optimization
+   [ ] Frontend performance
+   [ ] API response times
+
+5. USER TESTING
+   [ ] Beta testing program
+   [ ] Feedback collection
+   [ ] Bug reporting system
+   [ ] Iterate based on feedback
+
+================================================================================
+PHASE 8: DEPLOYMENT & LAUNCH
+================================================================================
+
+1. INFRASTRUCTURE
+   [ ] Set up production hosting (Vercel/Railway)
+   [ ] Configure CDN
+   [ ] Set up monitoring (Sentry, DataDog)
+   [ ] Configure analytics (Mixpanel, PostHog)
+   [ ] Set up logging
+
+2. DOMAIN & BRANDING
+   [ ] Secure domain name
+   [ ] SSL certificates
+   [ ] Brand assets finalization
+   [ ] Social media accounts
+
+3. DOCUMENTATION
+   [ ] User guide
+   [ ] FAQ section
+   [ ] Developer documentation
+   [ ] API documentation
+   [ ] Smart contract documentation
+
+4. LEGAL & COMPLIANCE
+   [ ] Terms of Service
+   [ ] Privacy Policy
+   [ ] Risk disclosures
+   [ ] Regulatory review (if needed)
+
+5. LAUNCH STRATEGY
+   [ ] Soft launch (limited users)
+   [ ] Marketing campaign
+   [ ] Community building
+   [ ] Partnerships
+   [ ] Public launch
+
+================================================================================
+PHASE 9: POST-LAUNCH & GROWTH
+================================================================================
+
+1. MONITORING & MAINTENANCE
+   [ ] 24/7 monitoring
+   [ ] Bug fixes
+   [ ] Performance optimization
+   [ ] Security updates
+
+2. FEATURE EXPANSION
+   [ ] Multi-token support (ETH, other stablecoins)
+   [ ] Advanced yield strategies
+   [ ] Savings goals templates
+   [ ] Social features (groups, challenges)
+   [ ] Referral program
+
+3. ANALYTICS & OPTIMIZATION
+   [ ] User behavior analysis
+   [ ] Conversion optimization
+   [ ] Retention strategies
+   [ ] Growth experiments
+
+4. COMMUNITY & SUPPORT
+   [ ] Discord/Telegram community
+   [ ] Customer support system
+   [ ] Educational content
+   [ ] Regular updates and communication
+
+================================================================================
+TECHNICAL STACK SUMMARY
+================================================================================
+
+FRONTEND:
+- React + TypeScript
+- Tailwind CSS
+- Lucide Icons
+- Vite
+
+BLOCKCHAIN:
+- Solidity (Smart Contracts)
+- Hardhat/Foundry (Development)
+- Base (L2 Network)
+- Chainlink (Automation)
+
+BACKEND:
+- Next.js API Routes / Node.js + Express
+- PostgreSQL / Supabase
+- Redis (Caching)
+- Web3.js / Ethers.js
+
+WALLET:
+- Coinbase Wallet SDK
+- WalletConnect
+- RainbowKit / ConnectKit
+
+HOSTING & INFRASTRUCTURE:
+- Vercel / Railway (Frontend & API)
+- Alchemy / Infura (RPC)
+- IPFS (Decentralized storage if needed)
+
+MONITORING:
+- Sentry (Error tracking)
+- Mixpanel / PostHog (Analytics)
+- DataDog (Infrastructure monitoring)
+
+================================================================================
+CURRENT STATUS
+================================================================================
+
+✅ COMPLETED:
+- UI/UX Design and Implementation
+- Component Architecture
+- Onboarding Flow
+- Loading States (Splash + Skeleton)
+- Modal Flows (Create Stack, Break Stack, Profile)
+- Responsive Design
+- Mobile Bottom Navigation
+- Desktop Navigation
+- Color System and Branding
+
+🚧 IN PROGRESS:
+- Mock data implementation (temporary)
+
+❌ TODO:
+- Everything in Phases 1-9 above
+
+================================================================================
+NEXT IMMEDIATE STEPS
+================================================================================
+
+1. Smart Contract Development (Start Phase 1)
+2. Set up development environment for Solidity
+3. Design contract architecture
+4. Begin writing core Stack contract
+5. Set up Hardhat/Foundry project
+
+================================================================================
+NOTES & CONSIDERATIONS
+================================================================================
+
+- Prioritize security at every step
+- Keep gas costs low for users
+- Focus on UX - make saving effortless
+- Build for mobile-first (most crypto users are on mobile)
+- Leverage Base's low fees and fast transactions
+- Consider account abstraction for better UX
+- Plan for scalability from day one
+- Build community early
+- Be transparent about risks and fees
+- Regular security audits
+
+================================================================================

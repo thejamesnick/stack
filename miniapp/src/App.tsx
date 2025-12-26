@@ -3,6 +3,7 @@ import { Button } from './components/ui/Button';
 import { CreateStackModal } from './components/features/CreateStackModal';
 import { BreakStackModal } from './components/features/BreakStackModal';
 import { ProfileModal } from './components/features/ProfileModal';
+import { ShareSuccessModal } from './components/features/ShareSuccessModal';
 import { StackCard } from './components/features/StackCard';
 import { SavingsStack, StackStatus, UserWallet } from './types';
 import { Wallet, Coins, Settings, Bell, History as HistoryIcon, House, Plus } from 'lucide-react';
@@ -17,6 +18,8 @@ function App() {
     const [stacks, setStacks] = useState<SavingsStack[]>([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [newlyCreatedStack, setNewlyCreatedStack] = useState<SavingsStack | null>(null);
     const [breakingStackId, setBreakingStackId] = useState<string | null>(null);
     const [currentView, setCurrentView] = useState<'home' | 'history'>('home');
 
@@ -82,6 +85,11 @@ function App() {
         };
         setStacks([newStack, ...stacks]);
         setShowCreateModal(false);
+
+        // Show share modal after creating stack
+        setNewlyCreatedStack(newStack);
+        setShowShareModal(true);
+
         setCurrentView('home');
     };
 
@@ -254,6 +262,18 @@ function App() {
                         activeStacks: activeStacks.length,
                         completedStacks: historyStacks.filter(s => s.status === StackStatus.COMPLETED).length
                     }}
+                />
+            )}
+
+            {showShareModal && newlyCreatedStack && (
+                <ShareSuccessModal
+                    isOpen={showShareModal}
+                    onClose={() => {
+                        setShowShareModal(false);
+                        setNewlyCreatedStack(null);
+                    }}
+                    stack={newlyCreatedStack}
+                    platform="farcaster"
                 />
             )}
         </div>
