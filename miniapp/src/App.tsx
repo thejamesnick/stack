@@ -7,6 +7,9 @@ import { StackCard } from './components/features/StackCard';
 import { SavingsStack, StackStatus, UserWallet } from './types';
 import { Wallet, Coins, Settings, Bell, History as HistoryIcon, House, Plus } from 'lucide-react';
 import { MOCK_WALLET, MOCK_STACKS } from './data/mock';
+import { Home } from './pages/Home';
+import { History } from './pages/History';
+
 
 
 function App() {
@@ -143,109 +146,19 @@ function App() {
             </header>
 
             <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-
                 {currentView === 'home' ? (
-                    <>
-                        {/* Hero Dashboard Section */}
-                        <section className="mb-8">
-                            <div className="bg-brand-500 rounded-3xl p-6 text-white shadow-bubbly relative overflow-hidden">
-                                <div className="relative z-10 flex items-center justify-between gap-4">
-                                    <div>
-                                        <p className="font-bold text-brand-100 uppercase tracking-widest text-xs mb-1">Total Stacked</p>
-                                        <h2 className="font-display font-bold text-4xl md:text-5xl">${totalActiveSaved.toLocaleString()}</h2>
-                                    </div>
-
-                                    <div>
-                                        <Button variant="secondary" onClick={() => setShowCreateModal(true)} className="border-none shadow-lg px-4 py-2 text-sm whitespace-nowrap">
-                                            <Plus className="w-4 h-4 mr-2" />
-                                            New Stack
-                                        </Button>
-                                    </div>
-                                </div>
-                                {/* Decorative Circles */}
-                                <div className="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-                                <div className="absolute right-10 -bottom-10 w-24 h-24 bg-brand-900 opacity-20 rounded-full blur-xl"></div>
-                            </div>
-                        </section>
-
-                        {/* Active Stacks Grid */}
-                        <section>
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="font-display font-bold text-2xl text-slate-800">Your Stacks</h3>
-                                <span className="font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-lg text-sm">{activeStacks.length} Active</span>
-                            </div>
-
-                            {activeStacks.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {activeStacks.map(stack => (
-                                        <StackCard key={stack.id} stack={stack} onBreak={handleRequestBreak} />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12 bg-white rounded-3xl border-2 border-dashed border-slate-200">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Plus className="w-8 h-8 text-slate-300" />
-                                    </div>
-                                    <h3 className="font-display font-bold text-lg text-slate-600">No active stacks</h3>
-                                    <p className="text-slate-400 text-sm mb-6">Start saving for your next goal today!</p>
-                                    <Button onClick={() => setShowCreateModal(true)} className="mx-auto">Create First Stack</Button>
-                                </div>
-                            )}
-                        </section>
-                    </>
+                    <Home
+                        totalActiveSaved={totalActiveSaved}
+                        activeStacks={activeStacks}
+                        onOpenCreate={() => setShowCreateModal(true)}
+                        onRequestBreak={handleRequestBreak}
+                    />
                 ) : (
-                    <>
-                        {/* History Header */}
-                        <section className="mb-6">
-                            <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-sm relative overflow-hidden">
-                                <div className="relative z-10 flex items-center justify-between gap-4">
-                                    <div>
-                                        <p className="font-bold text-slate-400 uppercase tracking-widest text-xs mb-1">Lifetime Volume</p>
-                                        <h2 className="font-display font-bold text-3xl md:text-4xl text-slate-100">${totalLifetimeVolume.toLocaleString()}</h2>
-                                    </div>
-                                    <div className="bg-slate-800 p-3 rounded-xl">
-                                        <History className="w-6 h-6 text-slate-400" />
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* History List */}
-                        <section>
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="font-display font-bold text-2xl text-slate-800">History</h3>
-                                <span className="font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-lg text-sm">{historyStacks.length} Past</span>
-                            </div>
-
-                            {historyStacks.length > 0 ? (
-                                <div className="space-y-4">
-                                    {historyStacks.map(stack => (
-                                        <div key={stack.id} className="bg-white p-4 rounded-2xl border-2 border-slate-100 flex items-center justify-between opacity-75 hover:opacity-100 transition-opacity">
-                                            <div className="flex items-center gap-4">
-                                                <div className="text-2xl bg-slate-50 p-2 rounded-xl">
-                                                    {stack.emoji}
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-display font-bold text-slate-700">{stack.name}</h4>
-                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{stack.status}</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-bold text-slate-800">${stack.currentAmount.toLocaleString()}</p>
-                                                <p className="text-xs text-slate-400">Target: ${stack.targetAmount.toLocaleString()}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12">
-                                    <p className="text-slate-400 font-medium">No completed or broken stacks yet.</p>
-                                </div>
-                            )}
-                        </section>
-                    </>
+                    <History
+                        totalLifetimeVolume={totalLifetimeVolume}
+                        historyStacks={historyStacks}
+                    />
                 )}
-
             </main>
 
             {/* Mobile Bottom Nav */}
@@ -269,7 +182,7 @@ function App() {
                     className={`flex flex-col items-center gap-1 ${currentView === 'history' ? 'text-brand-500' : 'text-slate-400'}`}
                     onClick={() => setCurrentView('history')}
                 >
-                    <History className="w-6 h-6" />
+                    <HistoryIcon className="w-6 h-6" />
                     <span className="text-[10px] font-bold uppercase">History</span>
                 </button>
             </div>

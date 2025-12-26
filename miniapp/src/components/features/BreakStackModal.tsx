@@ -46,14 +46,13 @@ export const BreakStackModal: React.FC<BreakStackModalProps> = ({ stack, onClose
                     <div className="h-px bg-slate-200 my-2"></div>
                     <div className="flex justify-between items-center">
                         <span className="font-display font-bold text-slate-700">You Receive</span>
-                        <span className="font-display font-bold text-xl text-brand-600">${returnAmount.toFixed(2)}</span>
+                        <span className="font-display font-semibold text-lg text-accent-green">${returnAmount.toFixed(2)}</span>
                     </div>
                 </div>
 
                 <div className="flex flex-col gap-3">
-                    <Button variant="danger" onClick={onConfirm} className="w-full justify-between group">
-                        <span>Break & Withdraw</span>
-                        <ArrowRight className="w-4 h-4 opacity-70 group-hover:translate-x-1 transition-transform" />
+                    <Button variant="danger" onClick={onConfirm} className="w-full">
+                        Break & Withdraw
                     </Button>
                     <Button variant="ghost" onClick={onClose} className="w-full">
                         No, Keep Stacking

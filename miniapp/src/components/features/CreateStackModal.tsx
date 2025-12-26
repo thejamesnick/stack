@@ -12,17 +12,17 @@ interface CreateStackModalProps {
 export const CreateStackModal: React.FC<CreateStackModalProps> = ({ onClose, onCreate, userBalance }) => {
     const [step, setStep] = useState(1);
     const [name, setName] = useState('');
-    const [amount, setAmount] = useState<number>(10);
+    const [amount, setAmount] = useState<string>('10');
     const [frequency, setFrequency] = useState<Frequency>(Frequency.WEEKLY);
     const [duration, setDuration] = useState<number>(12); // weeks/months etc
     const [emoji, setEmoji] = useState('💰');
 
-    const totalProjected = amount * duration;
+    const totalProjected = (Number(amount) || 0) * duration;
 
     const handleSubmit = () => {
         onCreate({
             name,
-            amountPerPull: amount,
+            amountPerPull: Number(amount) || 0,
             frequency,
             targetAmount: totalProjected,
             emoji
@@ -81,8 +81,8 @@ export const CreateStackModal: React.FC<CreateStackModalProps> = ({ onClose, onC
                                         key={freq}
                                         onClick={() => setFrequency(freq)}
                                         className={`py-3 rounded-2xl font-bold border-b-4 transition-all ${frequency === freq
-                                                ? 'bg-brand-100 text-brand-600 border-brand-500'
-                                                : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                                            ? 'bg-brand-100 text-brand-600 border-brand-500'
+                                            : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
                                             }`}
                                     >
                                         {freq}
@@ -111,7 +111,7 @@ export const CreateStackModal: React.FC<CreateStackModalProps> = ({ onClose, onC
                                     type="number"
                                     className="w-full bg-slate-100 border-2 border-transparent focus:bg-white focus:border-brand-500 rounded-2xl pl-8 pr-4 py-4 font-display font-bold text-2xl text-slate-800 outline-none transition-colors"
                                     value={amount}
-                                    onChange={(e) => setAmount(Number(e.target.value))}
+                                    onChange={(e) => setAmount(e.target.value)}
                                     min={1}
                                 />
                             </div>
@@ -127,7 +127,7 @@ export const CreateStackModal: React.FC<CreateStackModalProps> = ({ onClose, onC
                             <input
                                 type="range"
                                 min="2"
-                                max="52"
+                                max={frequency === Frequency.DAILY ? 365 : 52}
                                 value={duration}
                                 onChange={(e) => setDuration(Number(e.target.value))}
                                 className="w-full accent-brand-500 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
