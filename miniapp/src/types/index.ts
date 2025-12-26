@@ -1,13 +1,13 @@
 export enum Frequency {
-  DAILY = 'Daily',
-  WEEKLY = 'Weekly',
-  MONTHLY = 'Monthly',
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly',
 }
 
 export enum StackStatus {
-  ACTIVE = 'Active',
-  COMPLETED = 'Completed',
-  BROKEN = 'Broken',
+  ACTIVE = 'active',
+  COMPLETED = 'completed',
+  BROKEN = 'broken',
 }
 
 export interface SavingsStack {
@@ -22,6 +22,12 @@ export interface SavingsStack {
   status: StackStatus;
   asset: string; // e.g., 'USDC', 'ETH'
   emoji: string;
+
+  // Optional: Database integration fields (added when connecting to Supabase)
+  fid?: number; // Farcaster ID
+  walletAddress?: string; // Wallet that created this stack
+  contractStackId?: number; // Blockchain stack ID
+  txHash?: string; // Creation transaction hash
 }
 
 export interface UserWallet {
