@@ -1,0 +1,29 @@
+{
+    "accountAssociation": {
+        "header": "eyJmaWQiOjk5MTY4MywidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDQ4MTRhNzVlNjgyNTI0NDYwYTcwYzViNmYxYjNhYTY2N2FkNmYyYWY3NDBiNWY3ZDFhYzM3YjdiODEyNTExNDUifQ",
+        "payload": "eyJkb21haW4iOiJzdGFja3VwYXBwLnZlcmNlbC5hcHAifQ",
+        "signature": "MHgyYjNh..."
+    },
+    "miniapp": {
+        "version": "1",
+        "name": "Stack",
+        "homeUrl": "https://stackupapp.vercel.app",
+        "iconUrl": "https://stackupapp.vercel.app/icon.png",
+        "splashImageUrl": "https://stackupapp.vercel.app/splash.png",
+        "splashBackgroundColor": "#0f172a",
+        "subtitle": "Automated Savings on Base",
+        "description": "The fun, automated way to save on Base.",
+        "primaryCategory": "finance",
+        "tags": [
+            "savings",
+            "defi",
+            "base"
+        ],
+        "heroImageUrl": "https://stackupapp.vercel.app/hero.png",
+        "tagline": "Save money on Base.",
+        "ogTitle": "Stack",
+        "ogDescription": "Automated savings on Base.",
+        "ogImageUrl": "https://stackupapp.vercel.app/hero.png",
+        "noindex": false
+    }
+}

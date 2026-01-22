@@ -210,21 +210,25 @@ ALTER TABLE leaderboards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_achievements ENABLE ROW LEVEL SECURITY;
 
+-- HELPER: For Farcaster Mini Apps, we will authenticate via a custom JWT
+-- that contains the 'user_fid' claim.
+-- The policy checks: (auth.jwt() ->> 'user_fid')::bigint = fid
+
 -- ============================================================================
 -- USERS POLICIES
 -- ============================================================================
 
 -- Users can view their own profile
 CREATE POLICY "Users can view own profile" ON users
-    FOR SELECT USING (auth.uid()::text = fid::text);
+    FOR SELECT USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- Users can update their own profile
 CREATE POLICY "Users can update own profile" ON users
-    FOR UPDATE USING (auth.uid()::text = fid::text);
+    FOR UPDATE USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- Users can insert their own profile (signup)
 CREATE POLICY "Users can create profile" ON users
-    FOR INSERT WITH CHECK (auth.uid()::text = fid::text);
+    FOR INSERT WITH CHECK ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- ============================================================================
 -- WALLETS POLICIES
@@ -232,19 +236,19 @@ CREATE POLICY "Users can create profile" ON users
 
 -- Users can view their own wallets
 CREATE POLICY "Users can view own wallets" ON wallets
-    FOR SELECT USING (fid::text = auth.uid()::text);
+    FOR SELECT USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- Users can add wallets to their account
 CREATE POLICY "Users can add wallets" ON wallets
-    FOR INSERT WITH CHECK (fid::text = auth.uid()::text);
+    FOR INSERT WITH CHECK ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- Users can update their own wallets
 CREATE POLICY "Users can update own wallets" ON wallets
-    FOR UPDATE USING (fid::text = auth.uid()::text);
+    FOR UPDATE USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- Users can delete their own wallets
 CREATE POLICY "Users can delete own wallets" ON wallets
-    FOR DELETE USING (fid::text = auth.uid()::text);
+    FOR DELETE USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- ============================================================================
 -- STACKS POLICIES
@@ -252,19 +256,19 @@ CREATE POLICY "Users can delete own wallets" ON wallets
 
 -- Users can view their own stacks
 CREATE POLICY "Users can view own stacks" ON stacks
-    FOR SELECT USING (fid::text = auth.uid()::text);
+    FOR SELECT USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- Users can create stacks
 CREATE POLICY "Users can create stacks" ON stacks
-    FOR INSERT WITH CHECK (fid::text = auth.uid()::text);
+    FOR INSERT WITH CHECK ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- Users can update their own stacks
 CREATE POLICY "Users can update own stacks" ON stacks
-    FOR UPDATE USING (fid::text = auth.uid()::text);
+    FOR UPDATE USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- Users can delete their own stacks
 CREATE POLICY "Users can delete own stacks" ON stacks
-    FOR DELETE USING (fid::text = auth.uid()::text);
+    FOR DELETE USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- ============================================================================
 -- TRANSACTIONS POLICIES
@@ -272,7 +276,7 @@ CREATE POLICY "Users can delete own stacks" ON stacks
 
 -- Users can view their own transactions
 CREATE POLICY "Users can view own transactions" ON transactions
-    FOR SELECT USING (fid::text = auth.uid()::text);
+    FOR SELECT USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- Only backend can insert transactions (via service role)
 -- No INSERT policy for regular users
@@ -283,15 +287,15 @@ CREATE POLICY "Users can view own transactions" ON transactions
 
 -- Users can view their own notifications
 CREATE POLICY "Users can view own notifications" ON notifications
-    FOR SELECT USING (fid::text = auth.uid()::text);
+    FOR SELECT USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- Users can update their own notifications (mark as read)
 CREATE POLICY "Users can update own notifications" ON notifications
-    FOR UPDATE USING (fid::text = auth.uid()::text);
+    FOR UPDATE USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- Users can delete their own notifications
 CREATE POLICY "Users can delete own notifications" ON notifications
-    FOR DELETE USING (fid::text = auth.uid()::text);
+    FOR DELETE USING ((auth.jwt() ->> 'user_fid')::bigint = fid);
 
 -- ============================================================================
 -- LEADERBOARDS POLICIES (PUBLIC READ)
