@@ -24,9 +24,9 @@ function App() {
     const [wallet, setWallet] = useState<UserWallet | null>(null);
     const [stacks, setStacks] = useState<SavingsStack[]>([]);
 
-    // Auth & Onboarding State - DB Driven
+    // Auth & Onboarding State - Onboarding First
     const [hasOnboarded, setHasOnboarded] = useState(false);
-    const [authLoading, setAuthLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(false);
     const [splashVisible, setSplashVisible] = useState(true);
 
     // Modals
@@ -47,58 +47,49 @@ function App() {
         return () => clearTimeout(timer);
     }, []);
 
-    // Authenticate user & Sync with DB
-    useEffect(() => {
-        const initAuth = async () => {
-            try {
-                const authenticatedUser = await authenticate();
-                if (authenticatedUser) {
-                    setUser(authenticatedUser);
+    // Authenticate user & Sync with DB (only after onboarding)
+    const initAuth = async () => {
+        setAuthLoading(true);
+        try {
+            const authenticatedUser = await authenticate();
+            if (authenticatedUser) {
+                setUser(authenticatedUser);
 
-                    // Legacy wallet support
-                    setWallet({
-                        address: authenticatedUser.walletAddress,
-                        balance: 0,
-                        isConnected: true
-                    });
+                // Legacy wallet support
+                setWallet({
+                    address: authenticatedUser.identityAddress,
+                    balance: 0,
+                    isConnected: true
+                });
 
-                    // Sync User to DB
-                    if (authenticatedUser.fid > 0) {
-                        const dbUser = await unifiedUserService.getOrCreateUser(
-                            authenticatedUser.fid,
-                            authenticatedUser.username || `User ${authenticatedUser.fid}`,
-                            authenticatedUser.pfpUrl || '',
-                            authenticatedUser.walletAddress
-                        );
+                // Sync User to DB
+                if (authenticatedUser.fid > 0) {
+                    const dbUser = await unifiedUserService.getOrCreateUser(
+                        authenticatedUser.fid,
+                        authenticatedUser.username || `User ${authenticatedUser.fid}`,
+                        authenticatedUser.pfpUrl || '',
+                        authenticatedUser.identityAddress
+                    );
 
-                        // CHECK DB FOR ONBOARDING STATUS
-                        if (dbUser && dbUser.has_completed_onboarding) {
-                            setHasOnboarded(true);
-                        }
+                    // Mark onboarding complete in DB (since they just completed it)
+                    await unifiedUserService.completeOnboarding(authenticatedUser.fid);
 
-                        // Fetch Stacks
-                        const userStacks = await stackService.getUserStacks(authenticatedUser.fid);
-                        setStacks(userStacks);
-                    }
+                    // Fetch Stacks
+                    const userStacks = await stackService.getUserStacks(authenticatedUser.fid);
+                    setStacks(userStacks);
                 }
-            } catch (err) {
-                console.error("Auth init failed:", err);
-            } finally {
-                setAuthLoading(false);
             }
-        };
-        initAuth();
-    }, []);
+        } catch (err) {
+            console.error("Auth init failed:", err);
+        } finally {
+            setAuthLoading(false);
+        }
+    };
 
     const handleOnboardingComplete = async () => {
-        if (user && user.fid > 0) {
-            // Update DB Status
-            await unifiedUserService.completeOnboarding(user.fid);
-            setHasOnboarded(true);
-        } else {
-            // Fallback if auth failed during onboarding (shouldn't happen in real flow)
-            await handleConnectWallet();
-        }
+        setHasOnboarded(true);
+        // Now authenticate after onboarding is done
+        await initAuth();
     };
 
     const handleConnectWallet = async () => {
@@ -151,19 +142,17 @@ function App() {
 
     if (splashVisible) return <SplashScreen />;
 
-    // Loading State (Checking Auth & DB)
-    if (authLoading) return <LoadingScreen />;
-
-    // Not Authenticated -> Show Loading or Error (Auth should have happened)
-    if (!user) {
-        // In a real mini-app, auth happens automatically. 
-        // If failed, we might show a "Connect" button or keep loading.
-        return <LoadingScreen />;
-    }
-
-    // Authenticated but Not Onboarded -> Show Onboarding
+    // Show Onboarding First (before any auth)
     if (!hasOnboarded) {
         return <Onboarding onComplete={handleOnboardingComplete} />;
+    }
+
+    // Loading State (Checking Auth & DB after onboarding)
+    if (authLoading) return <LoadingScreen />;
+
+    // Not Authenticated -> Show Loading (Auth should happen after onboarding)
+    if (!user) {
+        return <LoadingScreen />;
     }
 
     // Authenticated & Onboarded -> Show App
@@ -171,6 +160,18 @@ function App() {
     const historyStacks = stacks.filter(s => s.status !== StackStatus.ACTIVE);
     const totalActiveSaved = activeStacks.reduce((acc, curr) => acc + curr.currentAmount, 0);
     const totalLifetimeVolume = historyStacks.reduce((acc, curr) => acc + curr.currentAmount, 0);
+
+    // Auto-prompt to add to home screen when user reaches main app
+    useEffect(() => {
+        if (user && hasOnboarded && !authLoading) {
+            // Use Farcaster SDK to prompt add to home screen
+            try {
+                sdk.actions.addFrame();
+            } catch (error) {
+                console.log('Add to home screen not available:', error);
+            }
+        }
+    }, [user, hasOnboarded, authLoading]);
 
     return (
         <div className="min-h-screen bg-slate-50 pb-24 md:pb-0">

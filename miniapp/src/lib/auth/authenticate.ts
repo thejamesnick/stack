@@ -7,7 +7,8 @@ export interface AuthenticatedUser {
     username: string;
     displayName: string;
     pfpUrl: string;
-    walletAddress: string; // farcaster_FID format or 0x...
+    identityAddress: string; // Internal identity tracking (farcaster_FID or wallet address)
+    actualWalletAddress?: string; // Real wallet address (optional, for Base app users)
     verified: boolean;
     platform: 'farcaster' | 'base' | 'unknown';
 }
@@ -74,7 +75,7 @@ async function authenticateWithFarcaster(): Promise<AuthenticatedUser | null> {
                     username: 'dev_user',
                     displayName: 'Dev User',
                     pfpUrl: '',
-                    walletAddress: 'farcaster_999',
+                    identityAddress: 'farcaster_999',
                     verified: false,
                     platform: 'farcaster'
                 };
@@ -89,7 +90,7 @@ async function authenticateWithFarcaster(): Promise<AuthenticatedUser | null> {
             username: user.username,
             displayName: user.displayName || user.username,
             pfpUrl: user.pfpUrl || '',
-            walletAddress: `farcaster_${user.fid}`,
+            identityAddress: `farcaster_${user.fid}`,
             verified: true,
             platform: 'farcaster',
         };
@@ -118,7 +119,7 @@ async function authenticateWithBase(): Promise<AuthenticatedUser | null> {
                     username: context.user.username,
                     displayName: context.user.displayName || context.user.username,
                     pfpUrl: context.user.pfpUrl || '',
-                    walletAddress: `farcaster_${context.user.fid}`, // PRIMARY: FID-based address
+                    identityAddress: `farcaster_${context.user.fid}`, // PRIMARY: FID-based address
                     verified: true,
                     platform: 'base',
                 };
@@ -142,7 +143,8 @@ async function authenticateWithBase(): Promise<AuthenticatedUser | null> {
                 username: `User ${walletAddress.slice(0, 6)}`,
                 displayName: `User ${walletAddress.slice(0, 6)}`,
                 pfpUrl: '',
-                walletAddress: walletAddress, // FALLBACK: Wallet-based address
+                identityAddress: walletAddress, // FALLBACK: Wallet-based address
+                actualWalletAddress: walletAddress, // Real wallet address
                 verified: true,
                 platform: 'base',
             };

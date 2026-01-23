@@ -59,7 +59,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
                                 {user?.username || 'based_saver.eth'}
                             </span>
                             <span className="font-mono text-[10px] text-slate-400 leading-none mt-0.5">
-                                {user?.walletAddress ? `${user.walletAddress.slice(0, 6)}...` : '0x...'}
+                                FID: {user?.fid || 'Unknown'}
                             </span>
                         </div>
                     </button>
